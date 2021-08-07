@@ -1,0 +1,3 @@
+[submodule "pizzly"]
+	path = pizzly
+	url = https://github.com/Bearer/Pizzly.git
