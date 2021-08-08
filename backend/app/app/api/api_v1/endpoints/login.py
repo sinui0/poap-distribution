@@ -2,12 +2,12 @@ from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Header
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2AuthorizationCodeBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, models, schemas
 from app.api import deps
-from app.identity import IdentityProvider
+from app.identity import IdentityProviderBase, Pizzly, AuthenticationNotFound, InvalidAuthentication
 from app.core import security
 from app.core.config import settings
 from app.core.security import get_password_hash
@@ -43,22 +43,31 @@ async def login_access_token(
         "token_type": "bearer",
     }
 
+
 @router.post("/login/access-token/external")
 async def login_access_token_external(
     provider_name: models.IdentityProviderName,
     auth_id: str,
-    provider: IdentityProvider = Depends(deps.get_provider),
+    provider: IdentityProviderBase = Depends(deps.get_provider),
+    pizzly: Pizzly = Depends(deps.get_pizzly),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
     Using auth id for external oauth, get an access token for future requests
     """
-    external_user_id = await provider.get_user_id(auth_id)
-    if not external_user_id:
-        raise HTTPException(status_code=500, detail='Failed to get external user id')
-    user = await crud.user.get_by_external_user_id(db, external_user_id)
+    try:
+        external_user_id = await provider.get_external_user_id(auth_id)
+    except AuthenticationNotFound:
+        raise HTTPException(status_code=400, detail='Provided auth id is invalid')
+    except InvalidAuthentication:
+        raise HTTPException(status_code=401, detail='External identity provider returned an authentication error')
+    except:
+        raise HTTPException(status_code=500)
+
+    user = await crud.user.get_by_external_user_id(db, provider_name, external_user_id)
     if not user:
-        user = await crud.user.create(db, obj_in=user_in)
+        raise HTTPException(status_code=500, detail='No user associated with that identity')
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(

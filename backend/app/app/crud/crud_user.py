@@ -14,8 +14,15 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         result = await db.execute(select(User).filter(User.email == email))
         return result.scalars().first()
 
-    async def get_by_external_user_id(self, db: AsyncSession, *, external_user_id: str) -> Optional[User]:
-        result = await db.execute(select(User).join(OAuthUserIdentity).filter(OAuthUserIdentity.external_user_id == external_user_id))
+    async def get_by_external_user_id(self, db: AsyncSession, provider_name: str, external_user_id: str) -> Optional[User]:
+        result = await db.execute(
+            select(User) \
+            .join(OAuthUserIdentity) \
+            .filter(
+                OAuthUserIdentity.provider == provider_name,
+                OAuthUserIdentity.external_user_id == external_user_id
+            )
+        )
         return result.scalars().first()
 
     async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:

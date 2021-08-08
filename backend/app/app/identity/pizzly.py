@@ -1,23 +1,8 @@
-from typing import Any
-
-from datetime import datetime
 from aiohttp import ClientSession, BasicAuth
 
-from pydantic import BaseModel
+from .authentication import Authentication
 
 from app.core.config import settings
-
-class Token(BaseModel):
-    updatedAt: datetime
-    accessToken: str
-    refreshToken: str
-
-class Authentication(BaseModel):
-    object: str
-    id: str
-    payload: Any
-    created_at: datetime
-    updated_at: datetime
 
 class Pizzly:
 

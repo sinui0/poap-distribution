@@ -10,7 +10,7 @@ from app.models.enums import IdentityProviderName
 # Shared properties
 class OAuthUserIdentityBase(BaseModel):
     provider: IdentityProviderName
-    external_user_id: int
+    external_user_id: str
     user_id: Optional[int] = None
     created: Optional[datetime] = None
     updated: Optional[datetime] = None
