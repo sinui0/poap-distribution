@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, models, schemas
 from app.api import deps
-from app.identity import Pizzly
+from app.identity import IdentityProvider
 from app.core import security
 from app.core.config import settings
 from app.core.security import get_password_hash
@@ -45,22 +45,18 @@ async def login_access_token(
 
 @router.post("/login/access-token/external")
 async def login_access_token_external(
-    provider: models.IdentityProviderName,
+    provider_name: models.IdentityProviderName,
     auth_id: str,
-    pizzly: Pizzly = Depends(deps.get_pizzly),
+    provider: IdentityProvider = Depends(deps.get_provider),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
     Using auth id for external oauth, get an access token for future requests
     """
-    auth = await pizzly.get_auth(provider, auth_id)
-    if auth:
-        return auth
-    else:
-        return None
-    user = await crud.user.authenticate_with_auth_id(
-        db, email=form_data.username, password=form_data.password
-    )
+    external_user_id = await provider.get_user_id(auth_id)
+    if not external_user_id:
+        raise HTTPException(status_code=500, detail='Failed to get external user id')
+    user = await crud.user.get_by_external_user_id(db, external_user_id)
     if not user:
         user = await crud.user.create(db, obj_in=user_in)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

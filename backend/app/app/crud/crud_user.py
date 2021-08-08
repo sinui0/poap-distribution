@@ -5,13 +5,17 @@ from sqlalchemy.future import select
 
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
-from app.models.user import User
+from app.models import User, OAuthUserIdentity
 from app.schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def get_by_email(self, db: AsyncSession, *, email: str) -> Optional[User]:
         result = await db.execute(select(User).filter(User.email == email))
+        return result.scalars().first()
+
+    async def get_by_external_user_id(self, db: AsyncSession, *, external_user_id: str) -> Optional[User]:
+        result = await db.execute(select(User).join(OAuthUserIdentity).filter(OAuthUserIdentity.external_user_id == external_user_id))
         return result.scalars().first()
 
     async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:

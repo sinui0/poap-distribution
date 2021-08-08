@@ -86,6 +86,8 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
     USERS_OPEN_REGISTRATION: bool = False
 
+    USER_AGENT: str
+
     PIZZLY_HOST: str
     PIZZLY_PORT: str
     PIZZLY_SECRET_KEY: str

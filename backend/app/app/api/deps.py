@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from asyncpraw import Reddit
 
 from app import crud, models, schemas
-from app.identity import Pizzly
+from app.identity import IdentityProvider, get_identity_provider
 from app.core import security
 from app.core.config import settings
 from app.db.session import async_session
@@ -30,8 +30,8 @@ async def get_db() -> Generator:
     async with async_session() as session:
         yield session
 
-async def get_pizzly() -> Pizzly:
-    yield Pizzly()
+def get_provider(provider_name: models.IdentityProviderName) -> IdentityProvider:
+    return get_identity_provider(provider_name)
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db), token: str = Depends(reusable_oauth2)

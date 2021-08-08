@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.session import async_session
 from app.main import app
-from app.identity import Pizzly, RedditIdentityProvider
+from app.identity import Pizzly, RedditIdentityProvider, DiscordIdentityProvider
 from app.tests.utils.user import authentication_token_from_email
 from app.tests.utils.utils import get_superuser_token_headers
 
@@ -36,6 +36,10 @@ async def pizzly() -> Pizzly:
 @pytest.fixture(scope="module")
 async def reddit() -> RedditIdentityProvider:
     return RedditIdentityProvider()
+
+@pytest.fixture(scope="module")
+async def discord() -> DiscordIdentityProvider:
+    return DiscordIdentityProvider()
 
 @pytest.fixture(scope="module")
 async def superuser_token_headers(client: AsyncClient) -> Dict[str, str]:
