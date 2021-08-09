@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Header
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2AuthorizationCodeBearer
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, models, schemas
@@ -44,12 +44,11 @@ async def login_access_token(
     }
 
 
-@router.post("/login/access-token/external")
+@router.post("/login/access-token/external", response_model=schemas.Token)
 async def login_access_token_external(
     provider_name: models.IdentityProviderName,
     auth_id: str,
     provider: IdentityProviderBase = Depends(deps.get_provider),
-    pizzly: Pizzly = Depends(deps.get_pizzly),
     db: AsyncSession = Depends(deps.get_db),
 ) -> Any:
     """
@@ -66,7 +65,7 @@ async def login_access_token_external(
 
     user = await crud.user.get_by_external_user_id(db, provider_name, external_user_id)
     if not user:
-        raise HTTPException(status_code=500, detail='No user associated with that identity')
+        raise HTTPException(status_code=404, detail='No user associated with that identity')
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {

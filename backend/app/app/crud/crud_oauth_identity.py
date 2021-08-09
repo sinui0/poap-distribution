@@ -4,8 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.crud.base import CRUDBase
-from app.models import OAuthUserIdentity
+from app.models import OAuthUserIdentity, User
 from app.schemas.oauth_identity import OAuthUserIdentityCreate, OAuthUserIdentityUpdate
+from app.identity.pizzly import pizzly
+from app.identity import get_identity_provider
 
 
 class CRUDOAuthUserIdentity(CRUDBase[OAuthUserIdentity, OAuthUserIdentityCreate, OAuthUserIdentityUpdate]):
@@ -19,6 +21,15 @@ class CRUDOAuthUserIdentity(CRUDBase[OAuthUserIdentity, OAuthUserIdentityCreate,
             )
         )
         return result.scalars().first()
+
+    async def get_user_identities(self, db: AsyncSession, *, user: User):
+        result = await db.execute(
+            select(OAuthUserIdentity) \
+            .filter(
+                OAuthUserIdentity.user_id == user.id,
+            )
+        )
+        return result.scalars().all()
 
     async def create(self, db: AsyncSession, *, obj_in: OAuthUserIdentityCreate) -> OAuthUserIdentity:
         db_obj = OAuthUserIdentity(**obj_in.dict())
@@ -34,4 +45,4 @@ class CRUDOAuthUserIdentity(CRUDBase[OAuthUserIdentity, OAuthUserIdentityCreate,
             update_data = obj_in.dict(exclude_unset=True)
         return await super().update(db, db_obj=db_obj, obj_in=update_data)
 
-oauth_identity = CRUDOAuthUserIdentity(CRUDOAuthUserIdentity)
+oauth_identity = CRUDOAuthUserIdentity(OAuthUserIdentity)

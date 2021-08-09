@@ -8,7 +8,7 @@ from app.core.config import settings
 
 class RedditIdentityProvider(IdentityProviderBase):
 
-    async def get_external_user_id(self, auth_id: str):
+    async def get_external_user_id(self, auth_id: str) -> str:
         auth = await self.get_auth('reddit', auth_id)
         if not auth:
             raise AuthenticationNotFound

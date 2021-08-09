@@ -25,6 +25,17 @@ async def read_identities(
     users = await crud.oauth_identity.get_multi(db, skip=skip, limit=limit)
     return users
 
+@router.get("/me", response_model=List[schemas.OAuthUserIdentity])
+async def read_identities_me(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.OAuthUserIdentity = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Retrieve oauth identities for user.
+    """
+    identities = await crud.oauth_identity.get_user_identities(db, user=current_user)
+    return identities
+
 
 @router.post("/", response_model=schemas.OAuthUserIdentity)
 async def create_identity(
