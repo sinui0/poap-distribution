@@ -1,4 +1,4 @@
-import { IUserProfile } from '@/interfaces';
+import { IUserProfile, IUserIdentity } from '@/interfaces';
 import { MainState, AppNotification } from './state';
 import { getStoreAccessors } from 'typesafe-vuex';
 import { State } from '../state';
@@ -11,11 +11,14 @@ export const mutations = {
     setLoggedIn(state: MainState, payload: boolean) {
         state.isLoggedIn = payload;
     },
-    setLogInError(state: MainState, payload: boolean) {
+    setLogInError(state: MainState, payload: { error: boolean, detail: string | null}) {
         state.logInError = payload;
     },
     setUserProfile(state: MainState, payload: IUserProfile) {
         state.userProfile = payload;
+    },
+    setUserIdentities(state: MainState, payload: IUserIdentity[]) {
+        state.userIdentities = payload;
     },
     setDashboardMiniDrawer(state: MainState, payload: boolean) {
         state.dashboardMiniDrawer = payload;
@@ -39,5 +42,6 @@ export const commitSetLoggedIn = commit(mutations.setLoggedIn);
 export const commitSetLogInError = commit(mutations.setLogInError);
 export const commitSetToken = commit(mutations.setToken);
 export const commitSetUserProfile = commit(mutations.setUserProfile);
+export const commitSetUserIdentities = commit(mutations.setUserIdentities);
 export const commitAddNotification = commit(mutations.addNotification);
 export const commitRemoveNotification = commit(mutations.removeNotification);

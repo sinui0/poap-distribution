@@ -56,6 +56,11 @@ export default new Router({
                   component: () => import(
                     /* webpackChunkName: "main-profile-password" */ './views/main/profile/UserProfileEditPassword.vue'),
                 },
+                {
+                  path: 'identities',
+                  component: () => import(
+                    /* webpackChunkName: "main-profile-identities" */ './views/main/profile/UserIdentities.vue'),
+                },
               ],
             },
             {

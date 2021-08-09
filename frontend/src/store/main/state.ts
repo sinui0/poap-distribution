@@ -1,4 +1,4 @@
-import { IUserProfile } from '@/interfaces';
+import { IUserProfile, IUserIdentity } from '@/interfaces';
 
 export interface AppNotification {
     content: string;
@@ -9,8 +9,9 @@ export interface AppNotification {
 export interface MainState {
     token: string;
     isLoggedIn: boolean | null;
-    logInError: boolean;
+    logInError: { error: boolean, detail: string | null };
     userProfile: IUserProfile | null;
+    userIdentities: IUserIdentity[];
     dashboardMiniDrawer: boolean;
     dashboardShowDrawer: boolean;
     notifications: AppNotification[];

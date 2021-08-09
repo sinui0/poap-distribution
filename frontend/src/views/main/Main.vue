@@ -36,6 +36,14 @@
               <v-list-tile-title>Change Password</v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
+          <v-list-tile to="/main/profile/identities">
+            <v-list-tile-action>
+              <v-icon>link</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title>Manage Identities</v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
         </v-list>
         <v-divider></v-divider>
         <v-list subheader v-show="hasAdminAccess">

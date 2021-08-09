@@ -21,3 +21,11 @@ export interface IUserProfileCreate {
     is_active?: boolean;
     is_superuser?: boolean;
 }
+
+export interface IUserIdentity {
+    provider: string;
+    external_user_id: string;
+    created: Date;
+    updated: Date;
+    id: number;
+}

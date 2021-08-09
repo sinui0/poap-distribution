@@ -18,6 +18,12 @@ export const api = {
 
     return axios.post(`${apiUrl}/api/v1/login/access-token`, params);
   },
+  async logInGetTokenExternal(providerName: string, authId: string) {
+    return axios.post(`${apiUrl}/api/v1/login/access-token/external`,
+      {},
+      {params: {provider_name: providerName, auth_id: authId},
+    });
+  },
   async getMe(token: string) {
     return axios.get<IUserProfile>(`${apiUrl}/api/v1/users/me`, authHeaders(token));
   },
@@ -29,6 +35,9 @@ export const api = {
   },
   async updateUser(token: string, userId: number, data: IUserProfileUpdate) {
     return axios.put(`${apiUrl}/api/v1/users/${userId}`, data, authHeaders(token));
+  },
+  async getIdentitiesMe(token: string) {
+    return axios.get(`${apiUrl}/api/v1/identity/me`, authHeaders(token));
   },
   async createUser(token: string, data: IUserProfileCreate) {
     return axios.post(`${apiUrl}/api/v1/users/`, data, authHeaders(token));

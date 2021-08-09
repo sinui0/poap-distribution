@@ -1,4 +1,5 @@
 import { api } from '@/api';
+import Pizzly from 'pizzly-js';
 import router from '@/router';
 import { getLocalToken, removeLocalToken, saveLocalToken } from '@/utils';
 import { AxiosError } from 'axios';
@@ -12,10 +13,13 @@ import {
     commitSetLogInError,
     commitSetToken,
     commitSetUserProfile,
+    commitSetUserIdentities,
 } from './mutations';
 import { AppNotification, MainState } from './state';
 
 type MainContext = ActionContext<MainState, State>;
+
+const pizzly = new Pizzly({ host: 'localhost:8081' });
 
 export const actions = {
     async actionLogIn(context: MainContext, payload: { username: string; password: string }) {
@@ -26,7 +30,7 @@ export const actions = {
                 saveLocalToken(token);
                 commitSetToken(context, token);
                 commitSetLoggedIn(context, true);
-                commitSetLogInError(context, false);
+                commitSetLogInError(context, { error: false, detail: null});
                 await dispatchGetUserProfile(context);
                 await dispatchRouteLoggedIn(context);
                 commitAddNotification(context, { content: 'Logged in', color: 'success' });
@@ -34,7 +38,31 @@ export const actions = {
                 await dispatchLogOut(context);
             }
         } catch (err) {
-            commitSetLogInError(context, true);
+            commitSetLogInError(context, { error: true, detail: 'Invalid username or password'});
+            await dispatchLogOut(context);
+        }
+    },
+    async actionLogInExternal(context: MainContext, payload: { providerName: string; }) {
+        try {
+            const integration = pizzly.integration(payload.providerName);
+            const pizzlyResponse = await integration.connect();
+            const authId = pizzlyResponse.authId;
+
+            const response = await api.logInGetTokenExternal(payload.providerName, authId);
+            const token = response.data.access_token;
+            if (token) {
+                saveLocalToken(token);
+                commitSetToken(context, token);
+                commitSetLoggedIn(context, true);
+                commitSetLogInError(context, { error: false, detail: null});
+                await dispatchGetUserProfile(context);
+                await dispatchRouteLoggedIn(context);
+                commitAddNotification(context, { content: 'Logged in', color: 'success' });
+            } else {
+                await dispatchLogOut(context);
+            }
+        } catch (err) {
+            commitSetLogInError(context, { error: true, detail: err });
             await dispatchLogOut(context);
         }
     },
@@ -59,6 +87,16 @@ export const actions = {
             commitSetUserProfile(context, response.data);
             commitRemoveNotification(context, loadingNotification);
             commitAddNotification(context, { content: 'Profile successfully updated', color: 'success' });
+        } catch (error) {
+            await dispatchCheckApiError(context, error);
+        }
+    },
+    async actionGetUserIdentities(context: MainContext) {
+        try {
+            const response = await api.getIdentitiesMe(context.state.token);
+            if (response.data) {
+                commitSetUserIdentities(context, response.data);
+            }
         } catch (error) {
             await dispatchCheckApiError(context, error);
         }
@@ -161,7 +199,9 @@ const { dispatch } = getStoreAccessors<MainState | any, State>('');
 export const dispatchCheckApiError = dispatch(actions.actionCheckApiError);
 export const dispatchCheckLoggedIn = dispatch(actions.actionCheckLoggedIn);
 export const dispatchGetUserProfile = dispatch(actions.actionGetUserProfile);
+export const dispatchGetUserIdentities = dispatch(actions.actionGetUserIdentities);
 export const dispatchLogIn = dispatch(actions.actionLogIn);
+export const dispatchLogInExternal = dispatch(actions.actionLogInExternal);
 export const dispatchLogOut = dispatch(actions.actionLogOut);
 export const dispatchUserLogOut = dispatch(actions.actionUserLogOut);
 export const dispatchRemoveLogIn = dispatch(actions.actionRemoveLogIn);
